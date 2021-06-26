@@ -41,17 +41,7 @@
       }, function(err, response, body) {
         // If there are any request errors
         if (err) return callback(err);
-        var result;
-        try {
-            result = JSON.parse(body);
-        } catch (err) {
-            return callback({
-                error: "Failed to parse token.",
-                code: 0,
-                requestBody: body
-            })
-        }
-        
+        const result = JSON.parse(body);
         // If the session token exists
         var sessionToken;
         if ("x-apple-session-token" in response.headers) {
@@ -76,13 +66,7 @@
         });
       });
     },
-    accountLogin(self, callback = function() {}, trustToken = null) {
-      var authData = {
-        "dsWebAuthToken": self.auth.token,
-        "extended_login": true,
-        "trustToken": trustToken
-      };
-
+    accountLogin(self, callback = function() {}, trustToken = null, authData = null) {
       return new Promise(function(resolve, reject) {
         request.post("https://setup.icloud.com/setup/ws/1/accountLogin?" + paramStr({
           "clientBuildNumber": self.clientSettings.clientBuildNumber,
@@ -96,7 +80,11 @@
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/603.3.1 (KHTML, like Gecko) Version/10.1.2 Safari/603.3.1',
             'Origin': 'https://www.icloud.com'
           },
-          body: JSON.stringify(authData)
+          body: JSON.stringify(authData || {
+            "dsWebAuthToken": self.auth.token,
+            "extended_login": true,
+            "trustToken": trustToken
+          })
         }, function(err, response, body) {
           // If there are any request errors
           if (err) {
